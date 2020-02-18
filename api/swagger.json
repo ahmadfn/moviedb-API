@@ -1,0 +1,2391 @@
+{
+   "openapi": "3.0.0",
+   "info": {
+      "description": "This is api design for binar full-stack assessment test",
+      "version": "1.0.0",
+      "title": "Swagger Movie DB API",
+      "termsOfService": "http://swagger.io/terms/",
+      "contact": {
+         "email": "apiteam@swagger.io"
+      },
+      "license": {
+         "name": "Apache 2.0",
+         "url": "http://www.apache.org/licenses/LICENSE-2.0.html"
+      }
+   },
+   "tags": [
+      {
+         "name": "auth",
+         "description": "Authentication and authorization operation."
+      },
+      {
+         "name": "users",
+         "description": "Operation about user account. An account is needed to be able to mark a movie as a favourite"
+      },
+      {
+         "name": "movies",
+         "description": "Operation about movie"
+      },
+      {
+         "name": "genres",
+         "description": "Operation about each movie genre"
+      },
+      {
+         "name": "levels",
+         "description": "Operations about user levels. Role teacher will have three different roles, such as academic staff, lecturer, and admin."
+      },
+      {
+         "name": "status",
+         "description": "Operations about movie status. Movie status is divided into rumored, planned, in production, post production, released, cancelled"
+      },
+      {
+         "name": "ratings",
+         "description": "Operation about a movie rating"
+      },
+      {
+         "name": "favourites",
+         "description": "Operation about movies that are regarded as users favourite"
+      }
+   ],
+   "paths": {
+      "/auth/login": {
+         "post": {
+            "tags": [
+               "auth"
+            ],
+            "summary": "Logs user into the system",
+            "description": "",
+            "operationId": "loginUser",
+            "requestBody": {
+               "description": "User object that needs to be added.",
+               "content": {
+                  "application/json": {
+                     "schema": {
+                        "type": "object",
+                        "properties": {
+                           "email": {
+                              "type": "string",
+                              "format": "email"
+                           },
+                           "password": {
+                              "type": "string"
+                           }
+                        }
+                     }
+                  }
+               }
+            },
+            "responses": {
+               "200": {
+                  "description": "successful operation",
+                  "content": {
+                     "application/json": {
+                        "schema": {
+                           "type": "object",
+                           "properties": {
+                              "token": {
+                                 "type": "string",
+                                 "format": "JWT"
+                              }
+                           }
+                        }
+                     }
+                  }
+               },
+               "400": {
+                  "description": "Invalid username/password supplied"
+               },
+               "401": {
+                  "description": "Unauthorized access"
+               }
+            },
+            "security": [
+               {
+                  "bearerAuth": []
+               }
+            ]
+         }
+      },
+      "/auth/logout": {
+         "post": {
+            "tags": [
+               "auth"
+            ],
+            "summary": "Logs out current logged in user session",
+            "description": "",
+            "operationId": "logoutUser",
+            "parameters": [
+               {
+                  "in": "header",
+                  "name": "Authorization",
+                  "required": true,
+                  "schema": {
+                     "type": "string",
+                     "format": "JWT"
+                  }
+               }
+            ],
+            "responses": {
+               "200": {
+                  "description": "OK",
+                  "content": {
+                     "application/json": {
+                        "schema": {
+                           "type": "object",
+                           "properties": {
+                              "message": {
+                                 "type": "string"
+                              }
+                           }
+                        }
+                     }
+                  }
+               },
+               "401": {
+                  "description": "Unauthorized access"
+               },
+               "500": {
+                  "description": "Internal server error"
+               }
+            },
+            "security": [
+               {
+                  "bearerAuth": []
+               }
+            ]
+         }
+      },
+      "/users": {
+         "post": {
+            "tags": [
+               "users"
+            ],
+            "summary": "Add a new user",
+            "description": "User registration",
+            "operationId": "createUser",
+            "requestBody": {
+               "description": "User object that needs to be added.",
+               "required": true,
+               "content": {
+                  "application/json": {
+                     "schema": {
+                        "$ref": "#/components/schemas/User"
+                     }
+                  }
+               }
+            },
+            "responses": {
+               "201": {
+                  "description": "Created",
+                  "content": {
+                     "application/json": {
+                        "schema": {
+                           "$ref": "#/components/schemas/User"
+                        }
+                     }
+                  }
+               },
+               "405": {
+                  "description": "Invalid input"
+               }
+            },
+            "security": [
+               {
+                  "bearerAuth": []
+               }
+            ]
+         },
+         "get": {
+            "tags": [
+               "users"
+            ],
+            "summary": "Get all existing users",
+            "description": "",
+            "operationId": "getUsers",
+            "parameters": [
+               {
+                  "in": "header",
+                  "name": "Authorization",
+                  "schema": {
+                     "type": "string",
+                     "format": "JWT"
+                  },
+                  "required": true
+               }
+            ],
+            "responses": {
+               "200": {
+                  "content": {
+                     "application/json": {
+                        "schema": {
+                           "$ref": "#/components/schemas/User"
+                        }
+                     }
+                  },
+                  "description": "OK"
+               },
+               "400": {
+                  "description": "Invalid ID supplied"
+               },
+               "404": {
+                  "description": "Users not found"
+               }
+            },
+            "security": [
+               {
+                  "bearerAuth": []
+               }
+            ]
+         }
+      },
+      "/users/{userId}": {
+         "get": {
+            "tags": [
+               "users"
+            ],
+            "summary": "Get detail user data in particular userId",
+            "operationId": "getUserByID",
+            "parameters": [
+               {
+                  "name": "userId",
+                  "in": "path",
+                  "description": "ID of user to retrieve specific user data",
+                  "required": true,
+                  "schema": {
+                     "type": "integer",
+                     "format": "int32"
+                  }
+               },
+               {
+                  "in": "header",
+                  "name": "Authorization",
+                  "description": "Authorization bearer token",
+                  "required": true,
+                  "schema": {
+                     "type": "string",
+                     "format": "JWT"
+                  }
+               }
+            ],
+            "responses": {
+               "200": {
+                  "description": "successful operation",
+                  "content": {
+                     "application/json": {
+                        "schema": {
+                           "$ref": "#/components/schemas/User"
+                        }
+                     }
+                  }
+               },
+               "400": {
+                  "description": "Invalid user ID"
+               },
+               "401": {
+                  "description": "Unauthorized access"
+               },
+               "404": {
+                  "description": "User not found"
+               }
+            },
+            "security": [
+               {
+                  "bearerAuth": []
+               }
+            ]
+         },
+         "put": {
+            "tags": [
+               "users"
+            ],
+            "summary": "Update specific user data according to user ID",
+            "operationId": "updateUserByID",
+            "parameters": [
+               {
+                  "name": "userId",
+                  "in": "path",
+                  "description": "ID of user to retrieve specific user data",
+                  "required": true,
+                  "schema": {
+                     "type": "integer",
+                     "format": "int32"
+                  }
+               },
+               {
+                  "name": "Authorization",
+                  "in": "header",
+                  "required": true,
+                  "schema": {
+                     "type": "string",
+                     "format": "JWT"
+                  }
+               }
+            ],
+            "requestBody": {
+               "description": "Updated user object",
+               "required": true,
+               "content": {
+                  "application/json": {
+                     "schema": {
+                        "anyOf": [
+                           {
+                              "$ref": "#/components/schemas/User"
+                           }
+                        ]
+                     }
+                  }
+               }
+            },
+            "responses": {
+               "200": {
+                  "description": "successful operation",
+                  "content": {
+                     "application/json": {
+                        "schema": {
+                           "$ref": "#/components/schemas/User"
+                        }
+                     }
+                  }
+               },
+               "400": {
+                  "description": "Invalid user ID"
+               },
+               "401": {
+                  "description": "Unauthorized access"
+               },
+               "404": {
+                  "description": "User not found"
+               }
+            },
+            "security": [
+               {
+                  "bearerAuth": []
+               }
+            ]
+         },
+         "delete": {
+            "tags": [
+               "users"
+            ],
+            "summary": "Delete user data based on defined ID",
+            "description": "",
+            "operationId": "deleteUser",
+            "parameters": [
+               {
+                  "in": "header",
+                  "name": "Authorization",
+                  "required": true,
+                  "schema": {
+                     "type": "string",
+                     "format": "JWT"
+                  }
+               },
+               {
+                  "name": "userId",
+                  "in": "path",
+                  "description": "ID of user to retrieve specific user data",
+                  "required": true,
+                  "schema": {
+                     "type": "integer",
+                     "format": "int32"
+                  }
+               }
+            ],
+            "responses": {
+               "200": {
+                  "description": "OK",
+                  "content": {
+                     "application/json": {
+                        "schema": {
+                           "type": "object",
+                           "properties": {
+                              "message": {
+                                 "type": "string"
+                              }
+                           }
+                        }
+                     }
+                  }
+               },
+               "400": {
+                  "description": "Invalid supplied ID"
+               },
+               "401": {
+                  "description": "Unauthorized access"
+               },
+               "404": {
+                  "description": "User not found"
+               },
+               "500": {
+                  "description": "Internal server error"
+               }
+            },
+            "security": [
+               {
+                  "bearerAuth": []
+               }
+            ]
+         }
+      },
+      "/genre": {
+         "post": {
+            "tags": [
+               "genres"
+            ],
+            "summary": "Add a new genre",
+            "description": "Add a new movie genre",
+            "operationId": "createGenre",
+            "parameters": [
+               {
+                  "name": "Authorization",
+                  "in": "header",
+                  "required": true,
+                  "schema": {
+                     "type": "string",
+                     "format": "JWT"
+                  }
+               }
+            ],
+            "requestBody": {
+               "description": "Genre object that needs to be added.",
+               "required": true,
+               "content": {
+                  "application/json": {
+                     "schema": {
+                        "$ref": "#/components/schemas/Genre"
+                     }
+                  }
+               }
+            },
+            "responses": {
+               "201": {
+                  "description": "Created",
+                  "content": {
+                     "application/json": {
+                        "schema": {
+                           "$ref": "#/components/schemas/Genre"
+                        }
+                     }
+                  }
+               },
+               "401": {
+                  "description": "Unauthorized access"
+               },
+               "405": {
+                  "description": "Invalid input"
+               }
+            },
+            "security": [
+               {
+                  "bearerAuth": []
+               }
+            ]
+         },
+         "get": {
+            "tags": [
+               "genres"
+            ],
+            "summary": "Get all existing genres",
+            "description": "",
+            "operationId": "getGenres",
+            "parameters": [
+               {
+                  "in": "header",
+                  "name": "Authorization",
+                  "schema": {
+                     "type": "string",
+                     "format": "JWT"
+                  },
+                  "required": true
+               }
+            ],
+            "responses": {
+               "200": {
+                  "content": {
+                     "application/json": {
+                        "schema": {
+                           "$ref": "#/components/schemas/Genre"
+                        }
+                     }
+                  },
+                  "description": "OK"
+               },
+               "401": {
+                  "description": "Unauthorized access"
+               },
+               "404": {
+                  "description": "Genres not found"
+               }
+            },
+            "security": [
+               {
+                  "bearerAuth": []
+               }
+            ]
+         }
+      },
+      "/genres/{genreId}": {
+         "get": {
+            "tags": [
+               "genres"
+            ],
+            "summary": "Get detail genre data in particular genreId",
+            "operationId": "getGenreByID",
+            "parameters": [
+               {
+                  "name": "genreId",
+                  "in": "path",
+                  "description": "ID of genre to retrieve specific genre data",
+                  "required": true,
+                  "schema": {
+                     "type": "integer",
+                     "format": "int32"
+                  }
+               },
+               {
+                  "in": "header",
+                  "name": "Authorization",
+                  "description": "Authorization bearer token",
+                  "required": true,
+                  "schema": {
+                     "type": "string",
+                     "format": "JWT"
+                  }
+               }
+            ],
+            "responses": {
+               "200": {
+                  "description": "successful operation",
+                  "content": {
+                     "application/json": {
+                        "schema": {
+                           "$ref": "#/components/schemas/Genre"
+                        }
+                     }
+                  }
+               },
+               "400": {
+                  "description": "Invalid ID supplied"
+               },
+               "401": {
+                  "description": "Unauthorized access"
+               },
+               "404": {
+                  "description": "Genre not found"
+               }
+            },
+            "security": [
+               {
+                  "bearerAuth": []
+               }
+            ]
+         },
+         "put": {
+            "tags": [
+               "genres"
+            ],
+            "summary": "Update specific genre data according to genre ID",
+            "operationId": "updateGenreByID",
+            "parameters": [
+               {
+                  "name": "genreId",
+                  "in": "path",
+                  "description": "ID of genre to retrieve specific genre data",
+                  "required": true,
+                  "schema": {
+                     "type": "integer",
+                     "format": "int32"
+                  }
+               },
+               {
+                  "name": "Authorization",
+                  "in": "header",
+                  "required": true,
+                  "schema": {
+                     "type": "string",
+                     "format": "JWT"
+                  }
+               }
+            ],
+            "requestBody": {
+               "description": "Updated genre object",
+               "required": true,
+               "content": {
+                  "application/json": {
+                     "schema": {
+                        "anyOf": [
+                           {
+                              "$ref": "#/components/schemas/Genre"
+                           }
+                        ]
+                     }
+                  }
+               }
+            },
+            "responses": {
+               "200": {
+                  "description": "successful operation",
+                  "content": {
+                     "application/json": {
+                        "schema": {
+                           "$ref": "#/components/schemas/Genre"
+                        }
+                     }
+                  }
+               },
+               "400": {
+                  "description": "Invalid ID supplied"
+               },
+               "401": {
+                  "description": "Unauthorized access"
+               },
+               "404": {
+                  "description": "Genre not found"
+               }
+            },
+            "security": [
+               {
+                  "bearerAuth": []
+               }
+            ]
+         },
+         "delete": {
+            "tags": [
+               "genres"
+            ],
+            "summary": "Delete genre data based on defined ID",
+            "description": "",
+            "operationId": "deleteGenre",
+            "parameters": [
+               {
+                  "in": "header",
+                  "name": "Authorization",
+                  "required": true,
+                  "schema": {
+                     "type": "string",
+                     "format": "JWT"
+                  }
+               },
+               {
+                  "name": "genreId",
+                  "in": "path",
+                  "description": "ID of genre to retrieve specific genre data",
+                  "required": true,
+                  "schema": {
+                     "type": "integer",
+                     "format": "int32"
+                  }
+               }
+            ],
+            "responses": {
+               "200": {
+                  "description": "OK",
+                  "content": {
+                     "application/json": {
+                        "schema": {
+                           "type": "object",
+                           "properties": {
+                              "message": {
+                                 "type": "string"
+                              }
+                           }
+                        }
+                     }
+                  }
+               },
+               "400": {
+                  "description": "Invalid ID supplied"
+               },
+               "401": {
+                  "description": "Unauthorized access"
+               },
+               "404": {
+                  "description": "Genre not found"
+               }
+            },
+            "security": [
+               {
+                  "bearerAuth": []
+               }
+            ]
+         }
+      },
+      "/movies": {
+         "post": {
+            "tags": [
+               "movies"
+            ],
+            "summary": "Add a new movie",
+            "description": "Add a new movie. This operation can be done only by admin",
+            "operationId": "createMovie",
+            "parameters": [
+               {
+                  "name": "Authorization",
+                  "in": "header",
+                  "required": true,
+                  "schema": {
+                     "type": "string",
+                     "format": "JWT"
+                  }
+               }
+            ],
+            "requestBody": {
+               "description": "Movie object that needs to be added.",
+               "required": true,
+               "content": {
+                  "application/json": {
+                     "schema": {
+                        "$ref": "#/components/schemas/Movie"
+                     }
+                  }
+               }
+            },
+            "responses": {
+               "201": {
+                  "description": "Created",
+                  "content": {
+                     "application/json": {
+                        "schema": {
+                           "$ref": "#/components/schemas/Movie"
+                        }
+                     }
+                  }
+               },
+               "401": {
+                  "description": "Unauthorized access"
+               },
+               "405": {
+                  "description": "Invalid input"
+               }
+            },
+            "security": [
+               {
+                  "bearerAuth": []
+               }
+            ]
+         },
+         "get": {
+            "tags": [
+               "movies"
+            ],
+            "summary": "Get all existing movies",
+            "description": "",
+            "operationId": "getMovies",
+            "parameters": [
+               {
+                  "in": "header",
+                  "name": "Authorization",
+                  "schema": {
+                     "type": "string",
+                     "format": "JWT"
+                  },
+                  "required": true
+               }
+            ],
+            "responses": {
+               "200": {
+                  "content": {
+                     "application/json": {
+                        "schema": {
+                           "$ref": "#/components/schemas/Movie"
+                        }
+                     }
+                  },
+                  "description": "OK"
+               },
+               "401": {
+                  "description": "Unauthorized access"
+               },
+               "404": {
+                  "description": "Genres not found"
+               }
+            },
+            "security": [
+               {
+                  "bearerAuth": []
+               }
+            ]
+         }
+      },
+      "/movies/{movieId}": {
+         "get": {
+            "tags": [
+               "movies"
+            ],
+            "summary": "Get detail movie data in particular movieId",
+            "operationId": "getMovieByID",
+            "parameters": [
+               {
+                  "name": "movieId",
+                  "in": "path",
+                  "description": "ID of movie to retrieve specific movie data",
+                  "required": true,
+                  "schema": {
+                     "type": "integer",
+                     "format": "int32"
+                  }
+               },
+               {
+                  "in": "header",
+                  "name": "Authorization",
+                  "description": "Authorization bearer token",
+                  "required": true,
+                  "schema": {
+                     "type": "string",
+                     "format": "JWT"
+                  }
+               }
+            ],
+            "responses": {
+               "200": {
+                  "description": "successful operation",
+                  "content": {
+                     "application/json": {
+                        "schema": {
+                           "$ref": "#/components/schemas/Movie"
+                        }
+                     }
+                  }
+               },
+               "400": {
+                  "description": "Invalid ID supplied"
+               },
+               "401": {
+                  "description": "Unauthorized access"
+               },
+               "404": {
+                  "description": "Movie not found"
+               }
+            },
+            "security": [
+               {
+                  "bearerAuth": []
+               }
+            ]
+         },
+         "put": {
+            "tags": [
+               "movies"
+            ],
+            "summary": "Update specific movie data according to movie ID",
+            "operationId": "updateMovieByID",
+            "parameters": [
+               {
+                  "name": "movieId",
+                  "in": "path",
+                  "description": "ID of movie to retrieve specific movie data",
+                  "required": true,
+                  "schema": {
+                     "type": "integer",
+                     "format": "int32"
+                  }
+               },
+               {
+                  "name": "Authorization",
+                  "in": "header",
+                  "required": true,
+                  "schema": {
+                     "type": "string",
+                     "format": "JWT"
+                  }
+               }
+            ],
+            "requestBody": {
+               "description": "Updated movie object",
+               "required": true,
+               "content": {
+                  "application/json": {
+                     "schema": {
+                        "anyOf": [
+                           {
+                              "$ref": "#/components/schemas/Movie"
+                           }
+                        ]
+                     }
+                  }
+               }
+            },
+            "responses": {
+               "200": {
+                  "description": "successful operation",
+                  "content": {
+                     "application/json": {
+                        "schema": {
+                           "$ref": "#/components/schemas/Movie"
+                        }
+                     }
+                  }
+               },
+               "400": {
+                  "description": "Invalid ID supplied"
+               },
+               "401": {
+                  "description": "Unauthorized access"
+               },
+               "404": {
+                  "description": "Movie not found"
+               }
+            },
+            "security": [
+               {
+                  "bearerAuth": []
+               }
+            ]
+         },
+         "delete": {
+            "tags": [
+               "movies"
+            ],
+            "summary": "Delete movie data based on defined ID",
+            "description": "",
+            "operationId": "deleteMovie",
+            "parameters": [
+               {
+                  "in": "header",
+                  "name": "Authorization",
+                  "required": true,
+                  "schema": {
+                     "type": "string",
+                     "format": "JWT"
+                  }
+               },
+               {
+                  "name": "movieId",
+                  "in": "path",
+                  "description": "ID of movie to retrieve specific movie data",
+                  "required": true,
+                  "schema": {
+                     "type": "integer",
+                     "format": "int32"
+                  }
+               }
+            ],
+            "responses": {
+               "200": {
+                  "description": "OK",
+                  "content": {
+                     "application/json": {
+                        "schema": {
+                           "type": "object",
+                           "properties": {
+                              "message": {
+                                 "type": "string"
+                              }
+                           }
+                        }
+                     }
+                  }
+               },
+               "400": {
+                  "description": "Invalid ID supplied"
+               },
+               "401": {
+                  "description": "Unauthorized access"
+               },
+               "404": {
+                  "description": "Movie not found"
+               }
+            },
+            "security": [
+               {
+                  "bearerAuth": []
+               }
+            ]
+         }
+      },
+      "/levels": {
+         "post": {
+            "tags": [
+               "levels"
+            ],
+            "summary": "Add a new level",
+            "description": "Add a new user authorization level",
+            "operationId": "createLevel",
+            "parameters": [
+               {
+                  "name": "Authorization",
+                  "in": "header",
+                  "required": true,
+                  "schema": {
+                     "type": "string",
+                     "format": "JWT"
+                  }
+               }
+            ],
+            "requestBody": {
+               "description": "Level object that needs to be added.",
+               "required": true,
+               "content": {
+                  "application/json": {
+                     "schema": {
+                        "$ref": "#/components/schemas/Level"
+                     }
+                  }
+               }
+            },
+            "responses": {
+               "201": {
+                  "description": "Created",
+                  "content": {
+                     "application/json": {
+                        "schema": {
+                           "$ref": "#/components/schemas/Level"
+                        }
+                     }
+                  }
+               },
+               "401": {
+                  "description": "Unauthorized access"
+               },
+               "405": {
+                  "description": "Invalid input"
+               }
+            },
+            "security": [
+               {
+                  "bearerAuth": []
+               }
+            ]
+         },
+         "get": {
+            "tags": [
+               "levels"
+            ],
+            "summary": "Get all existing levels",
+            "description": "",
+            "operationId": "getLevels",
+            "parameters": [
+               {
+                  "in": "header",
+                  "name": "Authorization",
+                  "schema": {
+                     "type": "string",
+                     "format": "JWT"
+                  },
+                  "required": true
+               }
+            ],
+            "responses": {
+               "200": {
+                  "content": {
+                     "application/json": {
+                        "schema": {
+                           "$ref": "#/components/schemas/Level"
+                        }
+                     }
+                  },
+                  "description": "OK"
+               },
+               "401": {
+                  "description": "Unauthorized access"
+               },
+               "404": {
+                  "description": "Status not found"
+               }
+            },
+            "security": [
+               {
+                  "bearerAuth": []
+               }
+            ]
+         }
+      },
+      "/levels/{levelId}": {
+         "get": {
+            "tags": [
+               "levels"
+            ],
+            "summary": "Get detail level data in particular roleId",
+            "operationId": "getLevelByID",
+            "parameters": [
+               {
+                  "name": "levelId",
+                  "in": "path",
+                  "description": "ID of level to retrieve specific level data",
+                  "required": true,
+                  "schema": {
+                     "type": "integer",
+                     "format": "int32"
+                  }
+               },
+               {
+                  "in": "header",
+                  "name": "Authorization",
+                  "description": "Authorization bearer token",
+                  "required": true,
+                  "schema": {
+                     "type": "string",
+                     "format": "JWT"
+                  }
+               }
+            ],
+            "responses": {
+               "200": {
+                  "description": "successful operation",
+                  "content": {
+                     "application/json": {
+                        "schema": {
+                           "$ref": "#/components/schemas/Level"
+                        }
+                     }
+                  }
+               },
+               "400": {
+                  "description": "Invalid ID supplied"
+               },
+               "401": {
+                  "description": "Unauthorized access"
+               },
+               "404": {
+                  "description": "Level not found"
+               }
+            },
+            "security": [
+               {
+                  "bearerAuth": []
+               }
+            ]
+         },
+         "put": {
+            "tags": [
+               "levels"
+            ],
+            "summary": "Update specific level data according to level ID",
+            "operationId": "updateLevelByID",
+            "parameters": [
+               {
+                  "name": "levelId",
+                  "in": "path",
+                  "description": "ID of level to retrieve specific level data",
+                  "required": true,
+                  "schema": {
+                     "type": "integer",
+                     "format": "int32"
+                  }
+               },
+               {
+                  "name": "Authorization",
+                  "in": "header",
+                  "required": true,
+                  "schema": {
+                     "type": "string",
+                     "format": "JWT"
+                  }
+               }
+            ],
+            "requestBody": {
+               "description": "Updated level object",
+               "required": true,
+               "content": {
+                  "application/json": {
+                     "schema": {
+                        "anyOf": [
+                           {
+                              "$ref": "#/components/schemas/Level"
+                           }
+                        ]
+                     }
+                  }
+               }
+            },
+            "responses": {
+               "200": {
+                  "description": "successful operation",
+                  "content": {
+                     "application/json": {
+                        "schema": {
+                           "$ref": "#/components/schemas/Level"
+                        }
+                     }
+                  }
+               },
+               "400": {
+                  "description": "Invalid ID supplied"
+               },
+               "401": {
+                  "description": "Unauthorized access"
+               },
+               "404": {
+                  "description": "Level not found"
+               }
+            },
+            "security": [
+               {
+                  "bearerAuth": []
+               }
+            ]
+         },
+         "delete": {
+            "tags": [
+               "levels"
+            ],
+            "summary": "Delete level data based on defined ID",
+            "description": "",
+            "operationId": "deleteLevel",
+            "parameters": [
+               {
+                  "in": "header",
+                  "name": "Authorization",
+                  "required": true,
+                  "schema": {
+                     "type": "string",
+                     "format": "JWT"
+                  }
+               },
+               {
+                  "name": "levelId",
+                  "in": "path",
+                  "description": "ID of level to retrieve specific level data",
+                  "required": true,
+                  "schema": {
+                     "type": "integer",
+                     "format": "int32"
+                  }
+               }
+            ],
+            "responses": {
+               "200": {
+                  "description": "OK",
+                  "content": {
+                     "application/json": {
+                        "schema": {
+                           "type": "object",
+                           "properties": {
+                              "message": {
+                                 "type": "string"
+                              }
+                           }
+                        }
+                     }
+                  }
+               },
+               "400": {
+                  "description": "Invalid ID supplied"
+               },
+               "401": {
+                  "description": "Unauthorized access"
+               },
+               "404": {
+                  "description": "Level not found"
+               }
+            },
+            "security": [
+               {
+                  "bearerAuth": []
+               }
+            ]
+         }
+      },
+      "/status": {
+         "post": {
+            "tags": [
+               "status"
+            ],
+            "summary": "Add a new status",
+            "description": "Add a new movie status. Movie status is divided into rumored, planned, in production, post production, released, and cancelled",
+            "operationId": "createMovieStatus",
+            "parameters": [
+               {
+                  "name": "Authorization",
+                  "in": "header",
+                  "required": true,
+                  "schema": {
+                     "type": "string",
+                     "format": "JWT"
+                  }
+               }
+            ],
+            "requestBody": {
+               "description": "Status object that needs to be added.",
+               "required": true,
+               "content": {
+                  "application/json": {
+                     "schema": {
+                        "$ref": "#/components/schemas/Status"
+                     }
+                  }
+               }
+            },
+            "responses": {
+               "201": {
+                  "description": "Created",
+                  "content": {
+                     "application/json": {
+                        "schema": {
+                           "$ref": "#/components/schemas/Status"
+                        }
+                     }
+                  }
+               },
+               "401": {
+                  "description": "Unauthorized access"
+               },
+               "405": {
+                  "description": "Invalid input"
+               }
+            },
+            "security": [
+               {
+                  "bearerAuth": []
+               }
+            ]
+         },
+         "get": {
+            "tags": [
+               "status"
+            ],
+            "summary": "Get all existing movie status",
+            "description": "",
+            "operationId": "getMovieStatus",
+            "parameters": [
+               {
+                  "in": "header",
+                  "name": "Authorization",
+                  "schema": {
+                     "type": "string",
+                     "format": "JWT"
+                  },
+                  "required": true
+               }
+            ],
+            "responses": {
+               "200": {
+                  "content": {
+                     "application/json": {
+                        "schema": {
+                           "$ref": "#/components/schemas/Status"
+                        }
+                     }
+                  },
+                  "description": "OK"
+               },
+               "401": {
+                  "description": "Unauthorized access"
+               },
+               "404": {
+                  "description": "Status not found"
+               }
+            },
+            "security": [
+               {
+                  "bearerAuth": []
+               }
+            ]
+         }
+      },
+      "/status/{statusId}": {
+         "get": {
+            "tags": [
+               "status"
+            ],
+            "summary": "Get detail movie status data in particular statusId",
+            "operationId": "getMovieStatusByID",
+            "parameters": [
+               {
+                  "name": "statusId",
+                  "in": "path",
+                  "description": "ID of movie status to retrieve specific status data",
+                  "required": true,
+                  "schema": {
+                     "type": "integer",
+                     "format": "int32"
+                  }
+               },
+               {
+                  "in": "header",
+                  "name": "Authorization",
+                  "description": "Authorization bearer token",
+                  "required": true,
+                  "schema": {
+                     "type": "string",
+                     "format": "JWT"
+                  }
+               }
+            ],
+            "responses": {
+               "200": {
+                  "description": "successful operation",
+                  "content": {
+                     "application/json": {
+                        "schema": {
+                           "$ref": "#/components/schemas/Status"
+                        }
+                     }
+                  }
+               },
+               "400": {
+                  "description": "Invalid ID supplied"
+               },
+               "401": {
+                  "description": "Unauthorized access"
+               },
+               "404": {
+                  "description": "Level not found"
+               }
+            },
+            "security": [
+               {
+                  "bearerAuth": []
+               }
+            ]
+         },
+         "put": {
+            "tags": [
+               "status"
+            ],
+            "summary": "Update specific movie status data according to status ID",
+            "operationId": "updateMovieStatusByID",
+            "parameters": [
+               {
+                  "name": "statusId",
+                  "in": "path",
+                  "description": "ID of movie status to retrieve specific status data",
+                  "required": true,
+                  "schema": {
+                     "type": "integer",
+                     "format": "int32"
+                  }
+               },
+               {
+                  "name": "Authorization",
+                  "in": "header",
+                  "required": true,
+                  "schema": {
+                     "type": "string",
+                     "format": "JWT"
+                  }
+               }
+            ],
+            "requestBody": {
+               "description": "Updated movie status object",
+               "required": true,
+               "content": {
+                  "application/json": {
+                     "schema": {
+                        "anyOf": [
+                           {
+                              "$ref": "#/components/schemas/Status"
+                           }
+                        ]
+                     }
+                  }
+               }
+            },
+            "responses": {
+               "200": {
+                  "description": "successful operation",
+                  "content": {
+                     "application/json": {
+                        "schema": {
+                           "$ref": "#/components/schemas/Status"
+                        }
+                     }
+                  }
+               },
+               "400": {
+                  "description": "Invalid ID supplied"
+               },
+               "401": {
+                  "description": "Unauthorized access"
+               },
+               "404": {
+                  "description": "Status not found"
+               }
+            },
+            "security": [
+               {
+                  "bearerAuth": []
+               }
+            ]
+         },
+         "delete": {
+            "tags": [
+               "status"
+            ],
+            "summary": "Delete movie status data based on defined ID",
+            "description": "",
+            "operationId": "deleteMovieStatus",
+            "parameters": [
+               {
+                  "in": "header",
+                  "name": "Authorization",
+                  "required": true,
+                  "schema": {
+                     "type": "string",
+                     "format": "JWT"
+                  }
+               },
+               {
+                  "name": "statusId",
+                  "in": "path",
+                  "description": "ID of movie status to retrieve specific movie status data",
+                  "required": true,
+                  "schema": {
+                     "type": "integer",
+                     "format": "int32"
+                  }
+               }
+            ],
+            "responses": {
+               "200": {
+                  "description": "OK",
+                  "content": {
+                     "application/json": {
+                        "schema": {
+                           "type": "object",
+                           "properties": {
+                              "message": {
+                                 "type": "string"
+                              }
+                           }
+                        }
+                     }
+                  }
+               },
+               "400": {
+                  "description": "Invalid ID supplied"
+               },
+               "401": {
+                  "description": "Unauthorized access"
+               },
+               "404": {
+                  "description": "Status not found"
+               }
+            },
+            "security": [
+               {
+                  "bearerAuth": []
+               }
+            ]
+         }
+      },
+      "/ratings": {
+         "post": {
+            "tags": [
+               "ratings"
+            ],
+            "summary": "Add a new movie rating",
+            "description": "Add a new movie rating",
+            "operationId": "createMovieRating",
+            "parameters": [
+               {
+                  "name": "Authorization",
+                  "in": "header",
+                  "required": true,
+                  "schema": {
+                     "type": "string",
+                     "format": "JWT"
+                  }
+               }
+            ],
+            "requestBody": {
+               "description": "Rating object that needs to be added.",
+               "required": true,
+               "content": {
+                  "application/json": {
+                     "schema": {
+                        "$ref": "#/components/schemas/Rating"
+                     }
+                  }
+               }
+            },
+            "responses": {
+               "201": {
+                  "description": "Created",
+                  "content": {
+                     "application/json": {
+                        "schema": {
+                           "$ref": "#/components/schemas/Rating"
+                        }
+                     }
+                  }
+               },
+               "401": {
+                  "description": "Unauthorized access"
+               },
+               "405": {
+                  "description": "Invalid input"
+               }
+            },
+            "security": [
+               {
+                  "bearerAuth": []
+               }
+            ]
+         },
+         "get": {
+            "tags": [
+               "ratings"
+            ],
+            "summary": "Get all existing ratings",
+            "description": "",
+            "operationId": "getMovieRatings",
+            "parameters": [
+               {
+                  "in": "header",
+                  "name": "Authorization",
+                  "schema": {
+                     "type": "string",
+                     "format": "JWT"
+                  },
+                  "required": true
+               }
+            ],
+            "responses": {
+               "200": {
+                  "content": {
+                     "application/json": {
+                        "schema": {
+                           "$ref": "#/components/schemas/Rating"
+                        }
+                     }
+                  },
+                  "description": "OK"
+               },
+               "401": {
+                  "description": "Unauthorized access"
+               },
+               "404": {
+                  "description": "Ratings not found"
+               }
+            },
+            "security": [
+               {
+                  "bearerAuth": []
+               }
+            ]
+         }
+      },
+      "/ratings/{ratingId}": {
+         "get": {
+            "tags": [
+               "ratings"
+            ],
+            "summary": "Get detail rating data in particular ratingId",
+            "operationId": "getMovieRatingByID",
+            "parameters": [
+               {
+                  "name": "ratingId",
+                  "in": "path",
+                  "description": "ID of movie rating to retrieve specific rating data",
+                  "required": true,
+                  "schema": {
+                     "type": "integer",
+                     "format": "int32"
+                  }
+               },
+               {
+                  "in": "header",
+                  "name": "Authorization",
+                  "description": "Authorization bearer token",
+                  "required": true,
+                  "schema": {
+                     "type": "string",
+                     "format": "JWT"
+                  }
+               }
+            ],
+            "responses": {
+               "200": {
+                  "description": "successful operation",
+                  "content": {
+                     "application/json": {
+                        "schema": {
+                           "$ref": "#/components/schemas/Rating"
+                        }
+                     }
+                  }
+               },
+               "400": {
+                  "description": "Invalid ID supplied"
+               },
+               "401": {
+                  "description": "Unauthorized access"
+               },
+               "404": {
+                  "description": "Rating not found"
+               }
+            },
+            "security": [
+               {
+                  "bearerAuth": []
+               }
+            ]
+         },
+         "put": {
+            "tags": [
+               "ratings"
+            ],
+            "summary": "Update specific movie rating data according to rating ID",
+            "operationId": "updateMovieRatingByID",
+            "parameters": [
+               {
+                  "name": "ratingId",
+                  "in": "path",
+                  "description": "ID of movie rating to retrieve specific rating data",
+                  "required": true,
+                  "schema": {
+                     "type": "integer",
+                     "format": "int32"
+                  }
+               },
+               {
+                  "name": "Authorization",
+                  "in": "header",
+                  "required": true,
+                  "schema": {
+                     "type": "string",
+                     "format": "JWT"
+                  }
+               }
+            ],
+            "requestBody": {
+               "description": "Updated rating object",
+               "required": true,
+               "content": {
+                  "application/json": {
+                     "schema": {
+                        "anyOf": [
+                           {
+                              "$ref": "#/components/schemas/Rating"
+                           }
+                        ]
+                     }
+                  }
+               }
+            },
+            "responses": {
+               "200": {
+                  "description": "successful operation",
+                  "content": {
+                     "application/json": {
+                        "schema": {
+                           "$ref": "#/components/schemas/Rating"
+                        }
+                     }
+                  }
+               },
+               "400": {
+                  "description": "Invalid ID supplied"
+               },
+               "401": {
+                  "description": "Unauthorized access"
+               },
+               "404": {
+                  "description": "Rating not found"
+               }
+            },
+            "security": [
+               {
+                  "bearerAuth": []
+               }
+            ]
+         },
+         "delete": {
+            "tags": [
+               "ratings"
+            ],
+            "summary": "Delete movie rating data based on defined ID",
+            "description": "",
+            "operationId": "deleteMovieRating",
+            "parameters": [
+               {
+                  "in": "header",
+                  "name": "Authorization",
+                  "required": true,
+                  "schema": {
+                     "type": "string",
+                     "format": "JWT"
+                  }
+               },
+               {
+                  "name": "ratingId",
+                  "in": "path",
+                  "description": "ID of movie rating to retrieve specific rating data",
+                  "required": true,
+                  "schema": {
+                     "type": "integer",
+                     "format": "int32"
+                  }
+               }
+            ],
+            "responses": {
+               "200": {
+                  "description": "OK",
+                  "content": {
+                     "application/json": {
+                        "schema": {
+                           "type": "object",
+                           "properties": {
+                              "message": {
+                                 "type": "string"
+                              }
+                           }
+                        }
+                     }
+                  }
+               },
+               "400": {
+                  "description": "Invalid ID supplied"
+               },
+               "401": {
+                  "description": "Unauthorized access"
+               },
+               "404": {
+                  "description": "Rating not found"
+               }
+            },
+            "security": [
+               {
+                  "bearerAuth": []
+               }
+            ]
+         }
+      },
+      "/favourites": {
+         "post": {
+            "tags": [
+               "favourites"
+            ],
+            "summary": "Add a new favourite movie",
+            "operationId": "createFavouriteMovie",
+            "parameters": [
+               {
+                  "name": "Authorization",
+                  "in": "header",
+                  "required": true,
+                  "schema": {
+                     "type": "string",
+                     "format": "JWT"
+                  }
+               }
+            ],
+            "requestBody": {
+               "description": "Favourite movie object that needs to be added.",
+               "required": true,
+               "content": {
+                  "application/json": {
+                     "schema": {
+                        "$ref": "#/components/schemas/Favourite"
+                     }
+                  }
+               }
+            },
+            "responses": {
+               "201": {
+                  "description": "Created",
+                  "content": {
+                     "application/json": {
+                        "schema": {
+                           "$ref": "#/components/schemas/Favourite"
+                        }
+                     }
+                  }
+               },
+               "401": {
+                  "description": "Unauthorized access"
+               },
+               "405": {
+                  "description": "Invalid input"
+               }
+            },
+            "security": [
+               {
+                  "bearerAuth": []
+               }
+            ]
+         },
+         "get": {
+            "tags": [
+               "favourites"
+            ],
+            "summary": "Get all existing movie favourites",
+            "description": "",
+            "operationId": "getFavouriteMovies",
+            "parameters": [
+               {
+                  "in": "header",
+                  "name": "Authorization",
+                  "schema": {
+                     "type": "string",
+                     "format": "JWT"
+                  },
+                  "required": true
+               }
+            ],
+            "responses": {
+               "200": {
+                  "content": {
+                     "application/json": {
+                        "schema": {
+                           "$ref": "#/components/schemas/Favourite"
+                        }
+                     }
+                  },
+                  "description": "OK"
+               },
+               "401": {
+                  "description": "Unauthorized access"
+               },
+               "404": {
+                  "description": "Favourite not found"
+               }
+            },
+            "security": [
+               {
+                  "bearerAuth": []
+               }
+            ]
+         }
+      },
+      "/favourites/{favouriteId}": {
+         "get": {
+            "tags": [
+               "favourites"
+            ],
+            "summary": "Get detail favourite movie data in particular favouriteId",
+            "operationId": "getFavouriteMovieByID",
+            "parameters": [
+               {
+                  "name": "favouriteId",
+                  "in": "path",
+                  "description": "ID of favourite movie to retrieve specific favourite data",
+                  "required": true,
+                  "schema": {
+                     "type": "integer",
+                     "format": "int32"
+                  }
+               },
+               {
+                  "in": "header",
+                  "name": "Authorization",
+                  "description": "Authorization bearer token",
+                  "required": true,
+                  "schema": {
+                     "type": "string",
+                     "format": "JWT"
+                  }
+               }
+            ],
+            "responses": {
+               "200": {
+                  "description": "successful operation",
+                  "content": {
+                     "application/json": {
+                        "schema": {
+                           "$ref": "#/components/schemas/Favourite"
+                        }
+                     }
+                  }
+               },
+               "400": {
+                  "description": "Invalid ID supplied"
+               },
+               "401": {
+                  "description": "Unauthorized access"
+               },
+               "404": {
+                  "description": "Favourite not found"
+               }
+            },
+            "security": [
+               {
+                  "bearerAuth": []
+               }
+            ]
+         },
+         "put": {
+            "tags": [
+               "favourites"
+            ],
+            "summary": "Update specific favourite movie data according to favourite ID",
+            "operationId": "updateMovieFavouriteByID",
+            "parameters": [
+               {
+                  "name": "favouriteId",
+                  "in": "path",
+                  "description": "ID of favourite movie to retrieve specific favourite data",
+                  "required": true,
+                  "schema": {
+                     "type": "integer",
+                     "format": "int32"
+                  }
+               },
+               {
+                  "name": "Authorization",
+                  "in": "header",
+                  "required": true,
+                  "schema": {
+                     "type": "string",
+                     "format": "JWT"
+                  }
+               }
+            ],
+            "requestBody": {
+               "description": "Updated favourite movie object",
+               "required": true,
+               "content": {
+                  "application/json": {
+                     "schema": {
+                        "anyOf": [
+                           {
+                              "$ref": "#/components/schemas/Favourite"
+                           }
+                        ]
+                     }
+                  }
+               }
+            },
+            "responses": {
+               "200": {
+                  "description": "successful operation",
+                  "content": {
+                     "application/json": {
+                        "schema": {
+                           "$ref": "#/components/schemas/Favourite"
+                        }
+                     }
+                  }
+               },
+               "400": {
+                  "description": "Invalid ID supplied"
+               },
+               "401": {
+                  "description": "Unauthorized access"
+               },
+               "404": {
+                  "description": "Favourite not found"
+               }
+            },
+            "security": [
+               {
+                  "bearerAuth": []
+               }
+            ]
+         },
+         "delete": {
+            "tags": [
+               "favourites"
+            ],
+            "summary": "Delete favourite movie data based on defined ID",
+            "description": "",
+            "operationId": "deleteMovieFavourite",
+            "parameters": [
+               {
+                  "in": "header",
+                  "name": "Authorization",
+                  "required": true,
+                  "schema": {
+                     "type": "string",
+                     "format": "JWT"
+                  }
+               },
+               {
+                  "name": "favouriteId",
+                  "in": "path",
+                  "description": "ID of favourite movie to retrieve specific favourite data",
+                  "required": true,
+                  "schema": {
+                     "type": "integer",
+                     "format": "int32"
+                  }
+               }
+            ],
+            "responses": {
+               "200": {
+                  "description": "OK",
+                  "content": {
+                     "application/json": {
+                        "schema": {
+                           "type": "object",
+                           "properties": {
+                              "message": {
+                                 "type": "string"
+                              }
+                           }
+                        }
+                     }
+                  }
+               },
+               "400": {
+                  "description": "Invalid ID supplied"
+               },
+               "401": {
+                  "description": "Unauthorized access"
+               },
+               "404": {
+                  "description": "Favourite not found"
+               }
+            },
+            "security": [
+               {
+                  "bearerAuth": []
+               }
+            ]
+         }
+      }
+   },
+   "components": {
+      "securitySchemes": {
+         "bearerAuth": {
+            "type": "http",
+            "scheme": "bearer",
+            "bearerFormat": "JWT"
+         }
+      },
+      "schemas": {
+         "User": {
+            "type": "object",
+            "properties": {
+               "user_id": {
+                  "type": "string",
+                  "format": "uuid"
+               },
+               "num": {
+                  "type": "integer",
+                  "format": "int32"
+               },
+               "email": {
+                  "type": "string",
+                  "format": "email"
+               },
+               "password": {
+                  "type": "string"
+               },
+               "level_id": {
+                  "type": "integer",
+                  "format": "int64",
+                  "description": "User authorization level (external/admin)",
+                  "anyOf": [
+                     {
+                        "$ref": "#/components/schemas/Level"
+                     }
+                  ]
+               },
+               "created_at": {
+                  "type": "string",
+                  "format": "date-time"
+               },
+               "updated_at": {
+                  "type": "string",
+                  "format": "date-time"
+               },
+               "deleted_at": {
+                  "type": "string",
+                  "format": "date-time"
+               }
+            }
+         },
+         "Genre": {
+            "type": "object",
+            "description": "Movies genre",
+            "properties": {
+               "id": {
+                  "type": "integer",
+                  "format": "int32"
+               },
+               "name": {
+                  "type": "string"
+               },
+               "created_at": {
+                  "type": "string",
+                  "format": "date-time"
+               },
+               "updated_at": {
+                  "type": "string",
+                  "format": "date-time"
+               }
+            }
+         },
+         "Status": {
+            "type": "object",
+            "properties": {
+               "id": {
+                  "type": "integer",
+                  "format": "int32"
+               },
+               "name": {
+                  "type": "string",
+                  "enum": [
+                     "rumored",
+                     "planned",
+                     "in production",
+                     "post production",
+                     "released",
+                     "cancelled"
+                  ]
+               },
+               "created_at": {
+                  "type": "string",
+                  "format": "date-time"
+               },
+               "updated_at": {
+                  "type": "string",
+                  "format": "date-time"
+               }
+            }
+         },
+         "Level": {
+            "type": "object",
+            "description": "User authorization level (external/admin)",
+            "properties": {
+               "id": {
+                  "type": "integer",
+                  "format": "int32"
+               },
+               "name": {
+                  "type": "string",
+                  "enum": [
+                     "external",
+                     "admin"
+                  ]
+               },
+               "created_at": {
+                  "type": "string",
+                  "format": "date-time"
+               },
+               "updated_at": {
+                  "type": "string",
+                  "format": "date-time"
+               }
+            }
+         },
+         "Movie": {
+            "type": "object",
+            "properties": {
+               "id": {
+                  "type": "integer",
+                  "format": "int32"
+               },
+               "title": {
+                  "type": "string"
+               },
+               "plot": {
+                  "type": "string"
+               },
+               "main_casts": {
+                  "type": "string"
+               },
+               "producers": {
+                  "type": "string"
+               },
+               "country": {
+                  "type": "string"
+               },
+               "movie_status": {
+                  "type": "integer",
+                  "format": "int32",
+                  "anyOf": [
+                     {
+                        "$ref": "#/components/schemas/Status"
+                     }
+                  ]
+               },
+               "likes_count": {
+                  "type": "integer",
+                  "format": "int32"
+               },
+               "genre_id": {
+                  "type": "array",
+                  "description": "A movie can have several genres",
+                  "items": {
+                     "type": "string"
+                  }
+               },
+               "released_at": {
+                  "type": "string",
+                  "format": "date-time"
+               },
+               "created_at": {
+                  "type": "string",
+                  "format": "date-time"
+               },
+               "updated_at": {
+                  "type": "string",
+                  "format": "date-time"
+               },
+               "deleted_at": {
+                  "type": "string",
+                  "format": "date-time"
+               }
+            }
+         },
+         "Rating": {
+            "type": "object",
+            "properties": {
+               "id": {
+                  "type": "integer",
+                  "format": "int32"
+               },
+               "movie_id": {
+                  "type": "integer",
+                  "format": "int32",
+                  "allOf": [
+                     {
+                        "$ref": "#/components/schemas/Movie"
+                     }
+                  ]
+               },
+               "user_id": {
+                  "type": "integer",
+                  "format": "int32",
+                  "allOf": [
+                     {
+                        "$ref": "#/components/schemas/User"
+                     }
+                  ]
+               },
+               "num_of_likes": {
+                  "type": "integer",
+                  "format": "int32"
+               },
+               "created_at": {
+                  "type": "string",
+                  "format": "datetime"
+               },
+               "updated_at": {
+                  "type": "string",
+                  "format": "datetime"
+               }
+            }
+         },
+         "Favourite": {
+            "type": "object",
+            "properties": {
+               "id": {
+                  "type": "integer",
+                  "format": "int32"
+               },
+               "user_id": {
+                  "type": "integer",
+                  "format": "int32"
+               },
+               "movie_id": {
+                  "type": "array",
+                  "items": {
+                     "type": "integer",
+                     "format": "int32",
+                     "allOf": [
+                        {
+                           "$ref": "#/components/schemas/Movie"
+                        }
+                     ]
+                  }
+               },
+               "created_at": {
+                  "type": "string",
+                  "format": "date-time"
+               },
+               "updated_at": {
+                  "type": "string",
+                  "format": "date-time"
+               }
+            }
+         }
+      }
+   },
+   "externalDocs": {
+      "description": "Find out more about Swagger",
+      "url": "http://swagger.io"
+   }
+}
